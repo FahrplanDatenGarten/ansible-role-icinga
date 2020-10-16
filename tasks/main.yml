@@ -1,0 +1,66 @@
+---
+- name: "Install icinga2 dependencies"
+  apt:
+    name: gnupg
+    state: present
+
+- name: "Add icinga2 repo key"
+  apt_key:
+    url: "{{ icinga2_apt_repo.gpgkey }}"
+    state: present
+
+- name: "Add icinga2 repository"
+  apt_repository:
+    repo: "{{ icinga2_apt_repo.repo }}"
+    state: present
+    update_cache: yes
+
+- name: "Install icinga2 basic packages"
+  apt:
+    name: "{{ icinga2_packages_debian }}"
+    state: "present"
+
+- name: "See if host is already configured"
+  stat:
+    path: "/var/lib/icinga2/certs/ticket"
+  register: icinga_ticket_file
+
+- name: "Generate ticket for host"
+  command: "icinga2 pki ticket --cn {{ ansible_fqdn }}"
+  delegate_to: "{{ icinga2_primary_config_endpoint }}"
+  register: icinga_ticket_generated
+  when: not icinga_ticket_file.stat.exists and not icinga_ticket is defined
+
+- name: "Create Certificate directory"
+  file:
+    dest: "/var/lib/icinga2/certs/"
+    state: directory
+    owner: "nagios"
+    group: "nagios"
+
+- name: "Get trusted cert from config host"
+  command: "icinga2 pki save-cert --trustedcert /var/lib/icinga2/certs/trusted-parent.crt --host {{ icinga2_primary_config_endpoint }}"
+  when: not icinga_ticket_file.stat.exists
+
+- name: "Setup icinga2 node"
+  command: "icinga2 node setup --ticket {{ icinga_ticket_generated.stdout }} --cn {{ ansible_fqdn }} --zone {{ icinga2_zone }} --accept-commands --accept-config --disable-confd --endpoint {{ icinga2_primary_config_endpoint }}  --parent_host {{ icinga2_parent_host }} --parent_zone {{ icinga2_parent_zone }} --trustedcert /var/lib/icinga2/certs/trusted-parent.crt"
+  notify: restart icinga2
+  when: not icinga_ticket_file.stat.exists and not icinga_ticket is defined
+
+- name: "Setup icinga2 node"
+  command: "icinga2 node setup --ticket {{ icinga_ticket }} --cn {{ ansible_fqdn }} --zone {{ icinga2_zone }} --accept-commands --accept-config --disable-confd --endpoint {{ icinga2_primary_config_endpoint }}  --parent_host {{ icinga2_parent_host }} --parent_zone {{ icinga2_parent_zone }} --trustedcert /var/lib/icinga2/certs/trusted-parent.crt"
+  notify: restart icinga2
+  when: not icinga_ticket_file.stat.exists and icinga_ticket is defined
+
+- name: Copy Icinga config files
+  template:
+    dest: "/etc/icinga2/{{ item }}"
+    src: "{{ item }}.j2"
+  loop:
+    - "zones.conf"
+  notify: restart icinga2
+
+- name: Fix ping permissions
+  file:
+    dest: /bin/ping
+    mode: u+s

@@ -1,0 +1,26 @@
+---
+icinga2_apt_repo:
+  repo: "deb http://packages.icinga.com/debian icinga-{{ ansible_distribution_release }} main"
+  gpgkey: http://packages.icinga.com/icinga.key
+
+icinga2_packages_debian:
+  - icinga2
+  - monitoring-plugins
+
+icinga2_primary_config_endpoint: "neso.het.fks.de.fahrplandatengarten.de"
+icinga2_parent_hosts: "{{ icinga2_primary_config_endpoint }}"
+icinga2_parent_zone: "primary"
+icinga2_zone: "{{ ansible_fqdn }}"
+
+icinga2_zones:
+  primary:
+    endpoints:
+      - neso.het.fks.de.fahrplandatengarten.de
+      - nereid.ovh.fra.de.fahrplandatengarten.de
+
+icinga2_endpoints:
+  neso.het.fks.de.fahrplandatengarten.de:
+    host: neso.het.fks.de.fahrplandatengarten.de
+  nereid.ovh.fra.de.fahrplandatengarten.de:
+    host: nereid.ovh.fra.de.fahrplandatengarten.de
+
