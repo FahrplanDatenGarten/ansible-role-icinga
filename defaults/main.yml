@@ -3,6 +3,8 @@ icinga2_apt_repo:
   repo: "deb http://packages.icinga.com/{{ ansible_distribution | lower }} icinga-{{ ansible_distribution_release }} main"
   gpgkey: http://packages.icinga.com/icinga.key
 
+icinga2_check_packages: []
+
 icinga2_packages_debian:
   - icinga2
   - monitoring-plugins
@@ -24,3 +26,4 @@ icinga2_endpoints:
   nereid.ovh.fra.de.fahrplandatengarten.de:
     host: nereid.ovh.fra.de.fahrplandatengarten.de
 
+icinga2_fdg_repo: "https://repo.fahrplandatengarten.de/debian/monitoring"

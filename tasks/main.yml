@@ -1,7 +1,9 @@
 ---
 - name: "Install icinga2 dependencies"
   apt:
-    name: gnupg
+    name:
+      - gnupg
+      - apt-transport-https
     state: present
 
 - name: "Add icinga2 repo key"
@@ -15,10 +17,26 @@
     state: present
     update_cache: yes
 
+- name: Add fdg-debian repo key
+  apt_key:
+    url: "{{ icinga2_fdg_repo }}/pubkey.asc"
+    state: present
+
+- name: Add fdg-debian repo
+  apt_repository:
+    repo: "deb {{ icinga2_fdg_repo }} stable main"
+    state: present
+    update_cache: yes
+
 - name: "Install icinga2 basic packages"
   apt:
     name: "{{ icinga2_packages_debian }}"
     state: "present"
+
+- name: "Install icinga2 check packages"
+  apt:
+    name: "{{ icinga2_check_packages }}"
+    state: "latest"
 
 - name: "See if host is already configured"
   stat:
