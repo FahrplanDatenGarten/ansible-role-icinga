@@ -10,6 +10,7 @@ icinga2_packages_debian:
   - icinga2
   - monitoring-plugins
 
+icinga2_configure: yes
 icinga2_primary_config_endpoint: "neso.het.fks.de.fahrplandatengarten.de"
 icinga2_parent_host: "{{ icinga2_primary_config_endpoint }}"
 icinga2_parent_zone: "primary"
