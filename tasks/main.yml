@@ -80,7 +80,7 @@
   when:
     - icinga2_configure
     - not icinga_ticket_file.stat.exists
-    - and icinga_ticket is defined
+    - icinga_ticket is defined
 
 - name: Copy Icinga config files
   template:
